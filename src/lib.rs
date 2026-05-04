@@ -2,6 +2,7 @@ pub mod boleto;
 pub mod cep;
 pub mod cnh;
 pub mod cnpj;
+mod common;
 mod cpf;
 pub mod currency;
 pub mod date_utils;

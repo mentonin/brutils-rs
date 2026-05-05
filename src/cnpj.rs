@@ -15,7 +15,36 @@ impl Cnpj {
     const SIZE: usize = 14;
 
     pub fn generate(branch: Option<u32>) -> Self {
-        todo!()
+        use rand::distributions::{Distribution, Uniform};
+
+        let mut rng = rand::thread_rng();
+        let digit_dist = Uniform::from(0..=36u8);
+        let mut num = [0u8; 14];
+
+        while num[0..8].iter().all(|&x| x == num[0]) {
+            num[0..12].copy_from_slice(
+                &digit_dist
+                    .sample_iter(&mut rng)
+                    .take(12)
+                    .collect::<Vec<u8>>(),
+            );
+        }
+
+        if let Some(mut branch_num) = branch {
+            branch_num %= 1000;
+            for d in num[8..12].iter_mut().rev() {
+                *d = (branch_num % 10) as u8;
+                branch_num /= 10;
+            }
+        }
+
+        if num[8..12].iter().all(|&x| x == 0) {
+            num[11] = 1
+        }
+
+        let checksum = Self::compute_checksum(num.first_chunk().unwrap());
+        num[12..].copy_from_slice(&checksum);
+        Self(num)
     }
 
     fn compute_checksum(base: &[u8; 12]) -> [u8; 2] {

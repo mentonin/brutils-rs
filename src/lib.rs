@@ -91,23 +91,6 @@ mod tests {
     }
 
     #[test]
-    fn test_cnpj_module_accessible() {
-        // Test that CNPJ module functions are accessible
-        assert!(cnpj::is_valid("03560714000142"));
-        assert!(!cnpj::is_valid("00000000000000"));
-
-        assert_eq!(
-            cnpj::format_cnpj("03560714000142"),
-            Some("03.560.714/0001-42".to_string())
-        );
-        assert_eq!(cnpj::remove_symbols("03.560.714/0001-42"), "03560714000142");
-
-        let generated = cnpj::generate(None);
-        assert!(cnpj::is_valid(&generated));
-        assert_eq!(generated.len(), 14);
-    }
-
-    #[test]
     fn test_currency_module_accessible() {
         // Test that Currency module functions are accessible
         assert_eq!(

@@ -56,25 +56,10 @@ impl Cpf {
 
     /// Computes the 2-digit CPF checksum for a 9-digit base number.
     fn compute_checksum(base: &[u8; 9]) -> [u8; 2] {
-        let d1 = Self::hashdigit(base);
-        let mut new_base = base.to_owned();
-        new_base[0] = d1;
-        new_base.rotate_left(1);
-        let d2 = Self::hashdigit(&new_base);
+        use crate::common::modulo11_gen;
+        let d1 = modulo11_gen(base) % 10;
+        let d2 = modulo11_gen(base.iter().chain(&[d1])) % 10;
         [d1, d2]
-    }
-
-    /// Computes the 1-digit checksum for a 9-digit array.
-    fn hashdigit(base: &[u8; 9]) -> u8 {
-        let mod_sum = base
-            .iter()
-            .enumerate()
-            .fold(0, |acc, (i, d)| (acc + (10 - i as u8) * d) % 11);
-        if mod_sum < 2 {
-            0
-        } else {
-            11 - mod_sum
-        }
     }
 
     /// Removes periods and dashes from string.
@@ -212,15 +197,6 @@ mod tests {
                 "generated invalid CPF: {cpf}"
             );
         }
-    }
-
-    #[test]
-    fn test_hashdigit() {
-        assert_eq!(Cpf::hashdigit(&[0, 0, 0, 0, 0, 0, 0, 0, 0]), 0);
-        assert_eq!(Cpf::hashdigit(&[5, 2, 5, 1, 3, 1, 2, 7, 7]), 6);
-        assert_eq!(Cpf::hashdigit(&[2, 5, 1, 3, 1, 2, 7, 7, 6]), 5);
-        assert_eq!(Cpf::hashdigit(&[5, 2, 5, 9, 9, 9, 2, 7, 7]), 6);
-        assert_eq!(Cpf::hashdigit(&[2, 5, 9, 9, 9, 2, 7, 7, 6]), 5);
     }
 
     #[test]

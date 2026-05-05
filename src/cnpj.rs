@@ -57,7 +57,16 @@ impl FromStr for Cnpj {
 
 impl Display for Cnpj {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let digits: String = self.0.iter().map(|d| (d + b'0') as char).collect();
+        write!(
+            f,
+            "{}.{}.{}/{}-{}",
+            &digits[0..2],
+            &digits[2..5],
+            &digits[5..8],
+            &digits[8..12],
+            &digits[12..14],
+        )
     }
 }
 

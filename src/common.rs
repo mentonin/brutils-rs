@@ -17,6 +17,10 @@ where
     (11 - modulo11_sum(base_digits.into_iter().chain(&[0u8]))) % 11
 }
 
+pub fn remove_symbols(dirty: &str, symbols: &str) -> String {
+    dirty.chars().filter(|&c| !symbols.contains(c)).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

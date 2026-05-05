@@ -1,6 +1,8 @@
 use std::fmt::Display;
 use std::str::FromStr;
 
+use crate::common;
+
 /// A structure that holds only numerically valid CPF numbers.
 /// No effort is made to verify that the CPF actually exists.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -56,15 +58,10 @@ impl Cpf {
 
     /// Computes the 2-digit CPF checksum for a 9-digit base number.
     fn compute_checksum(base: &[u8; 9]) -> [u8; 2] {
-        use crate::common::modulo11_gen;
+        use common::modulo11_gen;
         let d1 = modulo11_gen(base) % 10;
         let d2 = modulo11_gen(base.iter().chain(&[d1])) % 10;
         [d1, d2]
-    }
-
-    /// Removes periods and dashes from string.
-    fn remove_symbols(s: &str) -> String {
-        s.chars().filter(|&c| c != '.' && c != '-').collect()
     }
 }
 
@@ -74,7 +71,7 @@ impl FromStr for Cpf {
     /// Tries to parse a string into a numerically valid CPF number.
     /// Trims whitespace and ignores periods and dashes.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = Self::remove_symbols(s.trim());
+        let s = common::remove_symbols(s, ".- ");
         if s.len() != Self::SIZE {
             return Err(ParseCpfError::WrongLength);
         }
@@ -213,7 +210,7 @@ mod tests {
     #[test]
     fn test_display() {
         for s in VALID_CPF_LIST {
-            let s_ = Cpf::remove_symbols(s.trim());
+            let s_ = common::remove_symbols(s, ".- ");
             assert_eq!(
                 Cpf::from_str(s).unwrap().to_string(),
                 format!("{}.{}.{}-{}", &s_[0..3], &s_[3..6], &s_[6..9], &s_[9..11])

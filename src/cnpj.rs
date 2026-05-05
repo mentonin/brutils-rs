@@ -1,3 +1,4 @@
+use crate::common;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -18,7 +19,17 @@ impl Cnpj {
     }
 
     fn compute_checksum(base: &[u8; 12]) -> [u8; 2] {
-        todo!()
+        let mut base = base.to_vec();
+        fn hash_digit(base: &[u8]) -> u8 {
+            let mod_diff = base
+                .rchunks(8)
+                .fold(0, |acc, b| (acc + common::modulo11_gen(b)) % 11);
+            mod_diff % 10
+        }
+        let d1 = hash_digit(&base);
+        base.push(d1);
+        let d2 = hash_digit(&base);
+        [d1, d2]
     }
 }
 

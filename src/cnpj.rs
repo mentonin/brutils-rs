@@ -8,7 +8,7 @@ pub struct Cnpj([u8; Self::SIZE]);
 pub enum ParseCnpjError {
     WrongLength,
     NonAlphanumeric,
-    WrongCheksum,
+    WrongChecksum,
 }
 
 impl Cnpj {
@@ -37,7 +37,21 @@ impl FromStr for Cnpj {
     type Err = ParseCnpjError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        let s = common::remove_symbols(s, ".-/ ");
+        if s.len() != Self::SIZE {
+            return Err(ParseCnpjError::WrongLength);
+        }
+
+        let mut digits = [0; Self::SIZE];
+        for (c, d) in s.chars().zip(digits.iter_mut()) {
+            *d = c.to_digit(10).ok_or(ParseCnpjError::NonAlphanumeric)? as u8;
+        }
+
+        if Cnpj::compute_checksum(digits.first_chunk().unwrap()) != digits[12..] {
+            return Err(ParseCnpjError::WrongChecksum);
+        }
+
+        Ok(Cnpj(digits))
     }
 }
 
@@ -76,35 +90,35 @@ mod tests {
         assert!(Cnpj::from_str("01838723000127").is_ok());
 
         // Invalid CNPJs
-        assert!(!Cnpj::from_str("52599927000100").is_err());
-        assert!(!Cnpj::from_str("00000000000").is_err());
-        assert!(!Cnpj::from_str("00000000000000").is_err());
-        assert!(!Cnpj::from_str("11111111111111").is_err());
-        assert!(!Cnpj::from_str("00111222000133").is_err());
+        assert!(Cnpj::from_str("52599927000100").is_err());
+        assert!(Cnpj::from_str("00000000000").is_err());
+        assert!(Cnpj::from_str("00000000000000").is_err());
+        assert!(Cnpj::from_str("11111111111111").is_err());
+        assert!(Cnpj::from_str("00111222000133").is_err());
     }
 
     #[test]
     fn test_is_valid() {
         // When CNPJ's len is different of 14, returns False
-        assert!(!Cnpj::from_str("1").is_err());
+        assert!(Cnpj::from_str("1").is_err());
 
         // When CNPJ does not contain only digits, returns False
-        assert!(!Cnpj::from_str("1112223334445-").is_err());
+        assert!(Cnpj::from_str("1112223334445-").is_err());
 
         // When CNPJ has only the same digit, returns false
-        assert!(!Cnpj::from_str("11111111111111").is_err());
+        assert!(Cnpj::from_str("11111111111111").is_err());
 
         // When rest_1 is lt 2 and the 13th digit is not 0, returns False
-        assert!(!Cnpj::from_str("1111111111315").is_err());
+        assert!(Cnpj::from_str("1111111111315").is_err());
 
         // When rest_1 is gte 2 and the 13th digit is not (11 - rest), returns False
-        assert!(!Cnpj::from_str("1111111111115").is_err());
+        assert!(Cnpj::from_str("1111111111115").is_err());
 
         // When rest_2 is lt 2 and the 14th digit is not 0, returns False
-        assert!(!Cnpj::from_str("11111111121205").is_err());
+        assert!(Cnpj::from_str("11111111121205").is_err());
 
         // When rest_2 is gte 2 and the 14th digit is not (11 - rest), returns False
-        assert!(!Cnpj::from_str("11111111113105").is_err());
+        assert!(Cnpj::from_str("11111111113105").is_err());
 
         // When CNPJ is valid
         assert!(Cnpj::from_str("34665388000161").is_ok());
